@@ -83,12 +83,13 @@ async function settleMatchRewards(
   referenceId: string,
   kingId: string,
   queenId: string,
+  refundIds: string[],
   attempt = 1,
 ) {
   if (settlingMatches.has(referenceId)) return;
   settlingMatches.add(referenceId);
   try {
-    const wallets = await awardMatchRewards(referenceId, kingId, queenId);
+    const wallets = await awardMatchRewards(referenceId, kingId, queenId, refundIds);
     emitWallets(io, code, wallets);
     if (matchReferences.get(key) === referenceId) matchReferences.delete(key);
   } catch (cause) {
@@ -103,6 +104,7 @@ async function settleMatchRewards(
             referenceId,
             kingId,
             queenId,
+            refundIds,
             attempt + 1,
           ),
         5_000,
@@ -122,7 +124,16 @@ function settleFinishedRoom(io: Server, code: string) {
   const king = room.players.find((player) => player.finishOrder === 1);
   const queen = room.players.find((player) => player.finishOrder === 2);
   if (!king || !queen) return;
-  void settleMatchRewards(io, code, key, referenceId, king.id, queen.id);
+  const beggarOrder = room.players.length;
+  const refundIds = room.players
+    .filter(
+      (player) =>
+        player.finishOrder != null &&
+        player.finishOrder > 2 &&
+        player.finishOrder < beggarOrder,
+    )
+    .map((player) => player.id);
+  void settleMatchRewards(io, code, key, referenceId, king.id, queen.id, refundIds);
 }
 
 function clearOfflineTimer(key: string) {

@@ -312,33 +312,71 @@ export async function releaseMatchEntries(referenceId: string) {
   });
 }
 
+type MatchPayout = {
+  userId: string;
+  place: "king" | "queen" | "refund";
+  amount: bigint;
+};
+
+const PAYOUT_DESCRIPTIONS: Record<MatchPayout["place"], string> = {
+  king: "King match prize",
+  queen: "Queen match prize",
+  refund: "Match entry refund",
+};
+
+/**
+ * King, Queen and refunded players get their own entry back. Every other entry
+ * (the Beggar's, plus anyone who left mid-match) is split between King and Queen.
+ */
 export async function awardMatchRewards(
   referenceId: string,
   kingId: string,
   queenId: string,
+  refundIds: string[] = [],
 ) {
   if (kingId === queenId) throw new Error("Match winners must be different players.");
   const entries = await db.coinLedger.findMany({
     where: { referenceId, type: CoinTransactionType.MATCH_ENTRY },
+    include: { wallet: { select: { userId: true } } },
   });
-  const prizePool = entries.reduce(
-    (total, entry) => total + (entry.amount < BigInt(0) ? -entry.amount : BigInt(0)),
-    BigInt(0),
+  const stakes = new Map<string, bigint>();
+  for (const entry of entries) {
+    if (entry.amount >= BigInt(0)) continue;
+    const userId = entry.wallet.userId;
+    stakes.set(userId, (stakes.get(userId) ?? BigInt(0)) - entry.amount);
+  }
+  const stakeOf = (userId: string) => stakes.get(userId) ?? BigInt(0);
+  if (stakes.size === 0) throw new Error("The match prize pool was not found.");
+
+  const refunded = [...new Set(refundIds)].filter(
+    (userId) => userId !== kingId && userId !== queenId && stakeOf(userId) > BigInt(0),
   );
-  if (prizePool <= BigInt(0)) throw new Error("The match prize pool was not found.");
-  const kingPrize =
-    (prizePool * economyConfig.kingPrizePercent) / BigInt(100);
-  const prizes = [
-    { userId: kingId, place: "king", amount: kingPrize },
-    { userId: queenId, place: "queen", amount: prizePool - kingPrize },
-  ];
+  const keepers = new Set([kingId, queenId, ...refunded]);
+  let lostStakes = BigInt(0);
+  for (const [userId, stake] of stakes) {
+    if (!keepers.has(userId)) lostStakes += stake;
+  }
+  const kingShare = (lostStakes * economyConfig.kingPrizePercent) / BigInt(100);
+  const prizes = ([
+    { userId: kingId, place: "king", amount: stakeOf(kingId) + kingShare },
+    { userId: queenId, place: "queen", amount: stakeOf(queenId) + lostStakes - kingShare },
+    ...refunded.map((userId): MatchPayout => ({
+      userId,
+      place: "refund",
+      amount: stakeOf(userId),
+    })),
+  ] satisfies MatchPayout[]).filter((prize) => prize.amount > BigInt(0));
+  const payeeIds = [...new Set(prizes.map((prize) => prize.userId))].sort();
 
   return db.$transaction(async (transaction) => {
-    const wallets = await lockWallets(transaction, [kingId, queenId].sort());
+    const wallets = await lockWallets(transaction, payeeIds);
     for (const prize of prizes) {
       const wallet = wallets.get(prize.userId);
       if (!wallet) throw new Error("A winner wallet is missing.");
-      const idempotencyKey = `match-reward:${referenceId}:${prize.place}`;
+      const idempotencyKey =
+        prize.place === "refund"
+          ? `match-reward:${referenceId}:refund:${prize.userId}`
+          : `match-reward:${referenceId}:${prize.place}`;
       const prior = await transaction.coinLedger.findUnique({
         where: { idempotencyKey },
       });
@@ -354,15 +392,18 @@ export async function awardMatchRewards(
       await transaction.coinLedger.create({
         data: {
           walletId: wallet.id,
-          type: CoinTransactionType.MATCH_REWARD,
+          type:
+            prize.place === "refund"
+              ? CoinTransactionType.MATCH_REFUND
+              : CoinTransactionType.MATCH_REWARD,
           amount: prize.amount,
           balanceAfter: wallet.balance,
           idempotencyKey,
           referenceId,
-          description: `${prize.place === "king" ? "King" : "Queen"} match prize`,
+          description: PAYOUT_DESCRIPTIONS[prize.place],
         },
       });
     }
-    return [kingId, queenId].map((userId) => snapshot(wallets.get(userId)!));
+    return payeeIds.map((userId) => snapshot(wallets.get(userId)!));
   });
 }

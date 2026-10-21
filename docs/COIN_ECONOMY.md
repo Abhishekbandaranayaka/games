@@ -7,8 +7,12 @@ only and are never accepted as inputs to a wallet mutation.
 
 - New and existing accounts receive 100 coins once.
 - Every player pays 10 coins when a match starts.
-- The full prize pool is returned at completion: 70% to the King and the
-  remainder to the Queen.
+- At completion only the Beggar loses their entry. Every other finisher gets
+  their own 10 coins back, and the Beggar's 10 coins are split 70% to the King
+  and the remainder to the Queen. Entries of players who left mid-match are
+  added to that King/Queen split.
+- Five-player example (50-coin pool): King 17, Queen 13, 3rd and 4th place 10
+  each (refund), Beggar 0.
 - A match does not start if any seated player has fewer than 10 available
   coins.
 - A failed start releases every active reservation. Disconnecting or manually
@@ -54,7 +58,8 @@ strings.
 1. The migration gives every existing user exactly one signup ledger entry.
 2. A new signup atomically creates a wallet and one signup ledger entry.
 3. Starting a three-player match changes each balance from 100 to 90.
-4. The King receives 21 coins and the Queen receives 9 coins from the 30-coin
-   prize pool.
+4. In a three-player match the King receives 17 coins, the Queen receives 13
+   coins and the Beggar receives nothing. Middle finishers in larger matches
+   receive a 10-coin `MATCH_REFUND`.
 5. A player below the entry fee prevents the match from starting.
 6. Refreshing or retrying does not duplicate charges or rewards.
