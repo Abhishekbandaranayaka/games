@@ -8,3 +8,5 @@ export const HUB_NAME_SI = "සෙල්ලම්";
 export const BRAND_NAME = "හිඟන්නා";
 export const MINI_LOGO_SRC = withBasePath("/assets/higanna-mini-logo.webp");
 export const SPLASH_LOGO_SRC = withBasePath("/assets/hignanna-logo.webp");
+
+export const KALU_RAJINA_NAME = "කළු රැජින";

@@ -8,14 +8,15 @@ import { HubLogo } from "@/components/HubLogo";
 import { authClient } from "@/lib/auth-client";
 import { HUB_NAME } from "@/lib/brand";
 import { HUB_GAMES } from "@/lib/games";
+import { disconnectKrSocket } from "@/lib/kalu-rajina/socket";
 import { disconnectSocket } from "@/lib/socket";
 
 export function HubDashboard({
   player,
-  higannaEntryCoins,
+  matchEntryCoins,
 }: {
   player: { name: string; email: string; coinBalance: string };
-  higannaEntryCoins: string;
+  matchEntryCoins: string;
 }) {
   const router = useRouter();
   const [signingOut, setSigningOut] = useState(false);
@@ -26,6 +27,7 @@ export function HubDashboard({
     try {
       await authClient.signOut();
       disconnectSocket();
+      disconnectKrSocket();
       router.refresh();
     } finally {
       setSigningOut(false);
@@ -89,8 +91,7 @@ export function HubDashboard({
                 </p>
                 <p className="mt-1 text-xs leading-relaxed text-amber-100/60">{game.tagline}</p>
                 <p className="mt-2 text-[11px] text-amber-100/45">
-                  {game.players}
-                  {game.id === "higanna" ? ` · ${higannaEntryCoins} coins per match` : null}
+                  {game.players} · {matchEntryCoins} coins per match
                 </p>
               </div>
               <span className="shrink-0 rounded-2xl bg-linear-to-b from-amber-300 to-amber-500 px-4 py-2.5 text-sm font-semibold text-zinc-950 shadow-[0_10px_30px_rgba(212,175,55,0.25)] transition group-hover:brightness-105">

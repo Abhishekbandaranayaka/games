@@ -6,7 +6,7 @@ import { AppBackground } from "@/components/AppBackground";
 import { HubLogo } from "@/components/HubLogo";
 import { authClient } from "@/lib/auth-client";
 import { HUB_NAME } from "@/lib/brand";
-import { isHigannaPath } from "@/lib/routes";
+import { HUB_GAMES } from "@/lib/games";
 import { USERNAME_MAX_LENGTH, usernameError } from "@/lib/username";
 
 type AuthMode = "sign-in" | "sign-up";
@@ -24,6 +24,10 @@ export function AuthScreen({ callbackUrl = "/" }: { callbackUrl?: string }) {
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const destination = safeDestination(callbackUrl);
+  const destinationGame = HUB_GAMES.find(
+    (game) => destination === game.href || destination.startsWith(`${game.href}/`),
+  );
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -94,8 +98,8 @@ export function AuthScreen({ callbackUrl = "/" }: { callbackUrl?: string }) {
             <HubLogo size="hero" />
           </h1>
           <p className="mt-4 text-xs text-amber-100/55">
-            {isHigannaPath(safeDestination(callbackUrl))
-              ? "Sign in to continue to හිඟන්නා"
+            {destinationGame
+              ? `Sign in to continue to ${destinationGame.localName}`
               : `One ${HUB_NAME} account for every game`}
           </p>
         </div>

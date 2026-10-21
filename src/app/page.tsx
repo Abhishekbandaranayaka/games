@@ -18,7 +18,7 @@ export default async function Hub() {
         email: session.user.email,
         coinBalance: wallet.availableBalance.toString(),
       }}
-      higannaEntryCoins={economyConfig.matchEntry.toString()}
+      matchEntryCoins={economyConfig.matchEntry.toString()}
     />
   );
 }

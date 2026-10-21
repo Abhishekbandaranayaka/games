@@ -3,25 +3,32 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { HubLogo } from "@/components/HubLogo";
+import { KrLogo } from "@/components/kalu-rajina/KrLogo";
 import { SPLASH_LOGO_SRC } from "@/lib/brand";
 import { BASE_PATH } from "@/lib/basePath";
-import { HIGANNA_PATH, isHigannaPath } from "@/lib/routes";
+import { HIGANNA_PATH, isHigannaPath, isKaluRajinaPath, KALU_RAJINA_PATH } from "@/lib/routes";
 
-type SplashBrand = "hub" | "higanna";
+type GameId = "higanna" | "kalu-rajina";
+type SplashBrand = "hub" | GameId;
 
 const SPLASH_MS = 2000;
 const FADE_MS = 400;
 
-export function gameStartedSessionKey(code: string) {
-  return `higanna-game-started-${code.toUpperCase()}`;
+const GAME_ROOTS: Record<GameId, string> = {
+  higanna: HIGANNA_PATH,
+  "kalu-rajina": KALU_RAJINA_PATH,
+};
+
+export function gameStartedSessionKey(code: string, game: GameId = "higanna") {
+  return `${game}-game-started-${code.toUpperCase()}`;
 }
 
-export function markGameStarted(code: string) {
-  sessionStorage.setItem(gameStartedSessionKey(code), "1");
+export function markGameStarted(code: string, game: GameId = "higanna") {
+  sessionStorage.setItem(gameStartedSessionKey(code, game), "1");
 }
 
-export function clearGameStarted(code: string) {
-  sessionStorage.removeItem(gameStartedSessionKey(code));
+export function clearGameStarted(code: string, game: GameId = "higanna") {
+  sessionStorage.removeItem(gameStartedSessionKey(code, game));
 }
 
 function appPathOf(pathname: string | null): string {
@@ -32,11 +39,14 @@ function appPathOf(pathname: string | null): string {
 }
 
 function splashBrandFor(pathname: string | null): SplashBrand {
-  return isHigannaPath(appPathOf(pathname)) ? "higanna" : "hub";
+  const appPath = appPathOf(pathname);
+  if (isHigannaPath(appPath)) return "higanna";
+  if (isKaluRajinaPath(appPath)) return "kalu-rajina";
+  return "hub";
 }
 
-function roomCodeFromPath(pathname: string | null): string | null {
-  const roomPrefix = `${HIGANNA_PATH}/room/`;
+function roomCodeFromPath(pathname: string | null, game: GameId): string | null {
+  const roomPrefix = `${GAME_ROOTS[game]}/room/`;
   const appPath = appPathOf(pathname);
   if (!appPath.startsWith(roomPrefix)) return null;
   const code = appPath.slice(roomPrefix.length).split("/")[0]?.trim();
@@ -47,9 +57,11 @@ function roomCodeFromPath(pathname: string | null): string | null {
 /** Skip splash only when refreshing mid-match — lobby refresh still shows splash. */
 function shouldSkipSplash(pathname: string | null): boolean {
   if (typeof window === "undefined") return false;
-  const code = roomCodeFromPath(pathname);
+  const brand = splashBrandFor(pathname);
+  if (brand === "hub") return false;
+  const code = roomCodeFromPath(pathname, brand);
   if (!code) return false;
-  return sessionStorage.getItem(gameStartedSessionKey(code)) === "1";
+  return sessionStorage.getItem(gameStartedSessionKey(code, brand)) === "1";
 }
 
 /**
@@ -137,6 +149,8 @@ export function AppBoot({ children }: { children: ReactNode }) {
                 fetchPriority="high"
                 draggable={false}
               />
+            ) : splash.brand === "kalu-rajina" ? (
+              <KrLogo size="splash" />
             ) : (
               <HubLogo size="splash" />
             )}

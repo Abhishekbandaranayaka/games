@@ -13,6 +13,9 @@ only and are never accepted as inputs to a wallet mutation.
   added to that King/Queen split.
 - Five-player example (50-coin pool): King 17, Queen 13, 3rd and 4th place 10
   each (refund), Beggar 0.
+- කළු රැජින (Kalu Rajina) uses the same rule: 1st out is paid like the King,
+  2nd out like the Queen, middle places are refunded, and the player left
+  holding the කළු රැජින card loses their entry.
 - A match does not start if any seated player has fewer than 10 available
   coins.
 - A failed start releases every active reservation. Disconnecting or manually

@@ -3,6 +3,7 @@ import { networkInterfaces } from "os";
 import { parse } from "url";
 import next from "next";
 import { Server } from "socket.io";
+import { attachKaluRajinaSocket } from "./src/server/kalu-rajina/socket";
 import { attachGameSocket } from "./src/server/socket";
 
 const dev = process.env.NODE_ENV !== "production";
@@ -75,10 +76,11 @@ app.prepare().then(() => {
     },
   });
   attachGameSocket(io);
+  attachKaluRajinaSocket(io);
 
   httpServer.listen(port, listenHost, () => {
     const lan = lanAddress();
-    console.log(`හිඟන්නා ready on http://localhost:${port}`);
+    console.log(`Sellam ready on http://localhost:${port}`);
     if (lan) console.log(`Share on LAN: http://${lan}:${port}`);
   });
 });

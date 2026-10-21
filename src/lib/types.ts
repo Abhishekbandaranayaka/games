@@ -24,6 +24,8 @@ export type Card = {
   suit?: Suit;
   rank?: Rank;
   joker?: boolean;
+  /** The unpaired කළු රැජින card (Kalu Rajina game only). */
+  oldMaid?: boolean;
   /** Declared face when a joker is played. */
   asRank?: Rank;
   asSuit?: Suit;

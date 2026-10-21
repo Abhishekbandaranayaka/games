@@ -1,5 +1,5 @@
-import type { Server, Socket } from "socket.io";
-import { auth } from "./auth";
+import type { Server } from "socket.io";
+import { authenticateSocket, type AuthedSocket } from "./socket-auth";
 import {
   getRoom,
   ensureTurnClock,
@@ -30,11 +30,7 @@ import {
   type WalletSnapshot,
 } from "./wallet";
 
-type PlayerSocket = Socket & {
-  playerId?: string;
-  roomCode?: string;
-  playerName?: string;
-};
+type PlayerSocket = AuthedSocket;
 
 /** Keep players in the game while the app is backgrounded; only go offline after a long absence. */
 const DISCONNECT_GRACE_MS = 30 * 60 * 1000;
@@ -169,15 +165,6 @@ function trackSocketDisconnect(io: Server, code: string, playerId: string) {
   }
 }
 
-function requestHeaders(socket: Socket): Headers {
-  const headers = new Headers();
-  for (const [name, value] of Object.entries(socket.handshake.headers)) {
-    if (typeof value === "string") headers.set(name, value);
-    else if (Array.isArray(value)) headers.set(name, value.join(", "));
-  }
-  return headers;
-}
-
 function playerChannel(code: string, playerId: string) {
   return `player:${code}:${playerId}`;
 }
@@ -202,26 +189,7 @@ function bindSocketToRoom(io: Server, socket: PlayerSocket, code: string) {
 export function attachGameSocket(io: Server) {
   setRoomUpdateListener((code) => emitRoom(io, code));
 
-  io.use(async (rawSocket, next) => {
-    try {
-      const session = await auth.api.getSession({ headers: requestHeaders(rawSocket) });
-      if (!session) {
-        const error = new Error("Authentication required.") as Error & {
-          data?: { code: string };
-        };
-        error.data = { code: "UNAUTHORIZED" };
-        next(error);
-        return;
-      }
-      const socket = rawSocket as PlayerSocket;
-      socket.playerId = session.user.id;
-      socket.playerName = session.user.name;
-      next();
-    } catch (cause) {
-      console.error("Socket authentication failed", cause);
-      next(new Error("Authentication is temporarily unavailable."));
-    }
-  });
+  io.use(authenticateSocket);
 
   io.on("connection", (socket: PlayerSocket) => {
     socket.on("create", () => {

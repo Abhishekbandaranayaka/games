@@ -34,6 +34,7 @@ export function cardStrength(card: Card): number {
 }
 
 export function cardLabel(card: Card): string {
+  if (card.oldMaid) return "කළු රැජින";
   if (card.joker) {
     if (card.asRank && card.asSuit) {
       const suit =
