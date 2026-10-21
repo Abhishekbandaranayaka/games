@@ -1,0 +1,22 @@
+services:
+  mysql:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: higanna_dev
+      MYSQL_USER: higanna_app
+      MYSQL_PASSWORD: higanna_dev_password
+      MYSQL_ROOT_PASSWORD: higanna_local_root_password
+    ports:
+      - "127.0.0.1:3307:3306"
+    volumes:
+      - higanna_mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-phiganna_local_root_password"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+
+volumes:
+  higanna_mysql_data:

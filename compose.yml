@@ -1,0 +1,29 @@
+services:
+  higanna:
+    build:
+      context: .
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 3000
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL must be set}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?BETTER_AUTH_SECRET must be set}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:?BETTER_AUTH_URL must be set}
+      SIGNUP_BONUS_COINS: ${SIGNUP_BONUS_COINS:-100}
+      MATCH_ENTRY_COINS: ${MATCH_ENTRY_COINS:-10}
+      KING_PRIZE_PERCENT: ${KING_PRIZE_PERCENT:-70}
+      MATCH_HOLD_MINUTES: ${MATCH_HOLD_MINUTES:-30}
+    ports:
+      # Keep Node private; expose it through Caddy or Nginx with HTTPS.
+      - "127.0.0.1:3000:3000"
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3

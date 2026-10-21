@@ -1,0 +1,603 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Higanna — Future Development Architecture</title>
+  <style>
+    :root {
+      --ink: #172033;
+      --muted: #5b6477;
+      --blue: #2457d6;
+      --blue-soft: #eaf0ff;
+      --cyan: #16a5b6;
+      --gold: #f4b942;
+      --green: #198754;
+      --line: #dce2ec;
+      --panel: #f7f9fc;
+    }
+
+    * { box-sizing: border-box; }
+
+    @page {
+      size: A4;
+      margin: 16mm 15mm 16mm;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: "Segoe UI", Arial, sans-serif;
+      font-size: 10.5pt;
+      line-height: 1.48;
+      background: white;
+    }
+
+    h1, h2, h3 { margin: 0; line-height: 1.18; }
+    h1 { font-size: 28pt; letter-spacing: -0.6px; }
+    h2 {
+      margin-bottom: 13px;
+      color: var(--blue);
+      font-size: 19pt;
+      letter-spacing: -0.2px;
+    }
+    h3 { margin-bottom: 7px; font-size: 12.5pt; }
+    p { margin: 0 0 9px; }
+    ul, ol { margin: 6px 0 10px 19px; padding: 0; }
+    li { margin-bottom: 4px; }
+    strong { color: #111a2b; }
+
+    .page {
+      width: 100%;
+      height: 263mm;
+      overflow: hidden;
+      position: relative;
+      page-break-after: always;
+    }
+    .page:last-child { page-break-after: auto; }
+
+    .cover {
+      min-height: 263mm;
+      padding: 17mm 12mm;
+      overflow: hidden;
+      color: white;
+      border-radius: 8px;
+      background:
+        radial-gradient(circle at 88% 18%, rgba(22,165,182,.75), transparent 25%),
+        radial-gradient(circle at 4% 92%, rgba(244,185,66,.33), transparent 27%),
+        linear-gradient(145deg, #12254c 0%, #183a83 55%, #2457d6 100%);
+    }
+    .cover::after {
+      content: "";
+      position: absolute;
+      right: -55mm;
+      bottom: 17mm;
+      width: 145mm;
+      height: 145mm;
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 50%;
+      box-shadow: 0 0 0 17mm rgba(255,255,255,.04), 0 0 0 35mm rgba(255,255,255,.03);
+    }
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      font-size: 11pt;
+      font-weight: 700;
+      letter-spacing: 1.8px;
+      text-transform: uppercase;
+    }
+    .brand-mark {
+      display: inline-grid;
+      width: 30px;
+      height: 30px;
+      place-items: center;
+      border-radius: 8px;
+      color: #173477;
+      background: white;
+      font-size: 15pt;
+      font-weight: 800;
+    }
+    .cover-copy { margin-top: 54mm; max-width: 135mm; }
+    .cover-kicker {
+      margin-bottom: 13px;
+      color: #bfefff;
+      font-size: 10pt;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    .cover-subtitle {
+      margin-top: 18px;
+      max-width: 122mm;
+      color: #e5ebf8;
+      font-size: 13pt;
+    }
+    .cover-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 24px;
+    }
+    .cover-tag {
+      padding: 6px 10px;
+      border: 1px solid rgba(255,255,255,.34);
+      border-radius: 999px;
+      background: rgba(255,255,255,.08);
+      font-size: 9pt;
+    }
+    .cover-footer {
+      position: absolute;
+      left: 29mm;
+      bottom: 27mm;
+      color: #d6e1f5;
+      font-size: 9pt;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 17px;
+      padding-bottom: 9px;
+      border-bottom: 2px solid var(--line);
+    }
+    .section-label {
+      color: var(--muted);
+      font-size: 8.5pt;
+      font-weight: 700;
+      letter-spacing: 1.4px;
+      text-transform: uppercase;
+    }
+    .page-no { color: #8c95a7; font-size: 9pt; }
+
+    .lead {
+      margin-bottom: 15px;
+      color: #344056;
+      font-size: 12pt;
+    }
+    .callout {
+      margin: 14px 0;
+      padding: 12px 14px;
+      border-left: 4px solid var(--cyan);
+      border-radius: 0 6px 6px 0;
+      background: #eefafb;
+    }
+    .warning {
+      border-left-color: var(--gold);
+      background: #fff8e7;
+    }
+    .decision {
+      border-left-color: var(--green);
+      background: #eff9f3;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .card {
+      break-inside: avoid;
+      padding: 12px 13px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: white;
+    }
+    .card.blue { border-top: 4px solid var(--blue); }
+    .card.cyan { border-top: 4px solid var(--cyan); }
+    .card.gold { border-top: 4px solid var(--gold); }
+    .card.green { border-top: 4px solid var(--green); }
+    .card p:last-child, .card ul:last-child { margin-bottom: 0; }
+
+    table {
+      width: 100%;
+      margin: 10px 0 15px;
+      border-collapse: collapse;
+      font-size: 9.4pt;
+    }
+    th, td {
+      padding: 8px 9px;
+      border: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+    th { color: #20325c; background: var(--blue-soft); }
+    tr:nth-child(even) td { background: #fbfcfe; }
+
+    .flow {
+      margin: 14px 0;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+    }
+    .flow-row {
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+      gap: 7px;
+    }
+    .flow-box {
+      display: grid;
+      min-height: 45px;
+      flex: 1;
+      place-items: center;
+      padding: 7px;
+      border: 1px solid #b9c7e7;
+      border-radius: 6px;
+      color: #20325c;
+      background: white;
+      text-align: center;
+      font-size: 8.7pt;
+      font-weight: 650;
+    }
+    .arrow { align-self: center; color: var(--blue); font-size: 15pt; }
+
+    .phase {
+      display: grid;
+      grid-template-columns: 25mm 1fr;
+      gap: 11px;
+      margin-bottom: 10px;
+      break-inside: avoid;
+    }
+    .phase-id {
+      padding: 9px 7px;
+      border-radius: 7px;
+      color: white;
+      background: var(--blue);
+      text-align: center;
+      font-size: 9pt;
+      font-weight: 750;
+    }
+    .phase-body {
+      padding: 8px 11px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+    }
+    .phase-body h3 { color: #20325c; }
+    .phase-body p { margin: 0; color: var(--muted); font-size: 9.5pt; }
+
+    .checklist {
+      margin-left: 0;
+      list-style: none;
+    }
+    .checklist li {
+      position: relative;
+      padding-left: 21px;
+    }
+    .checklist li::before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      color: var(--green);
+      font-weight: 800;
+    }
+
+    .small { color: var(--muted); font-size: 8.7pt; }
+    .mono {
+      padding: 10px 12px;
+      border-radius: 6px;
+      color: #edf3ff;
+      background: #18243b;
+      font-family: Consolas, monospace;
+      font-size: 9pt;
+      line-height: 1.5;
+      white-space: pre-line;
+    }
+  </style>
+</head>
+<body>
+  <section class="page cover">
+    <div class="brand"><span class="brand-mark">H</span> Higanna</div>
+    <div class="cover-copy">
+      <div class="cover-kicker">Product &amp; Technical Plan</div>
+      <h1>Future Development<br />Architecture</h1>
+      <p class="cover-subtitle">A phased roadmap for secure accounts, coins, global matchmaking, server-side bots, rewarded ads and subscriptions.</p>
+      <div class="cover-tags">
+        <span class="cover-tag">Next.js 16</span>
+        <span class="cover-tag">Node.js</span>
+        <span class="cover-tag">Socket.IO</span>
+        <span class="cover-tag">MySQL</span>
+        <span class="cover-tag">Redis</span>
+        <span class="cover-tag">PM2</span>
+      </div>
+    </div>
+    <div class="cover-footer">Architecture proposal • Version 1.0 • 02 September 2026</div>
+  </section>
+
+  <section class="page">
+    <div class="section-head">
+      <span class="section-label">01 • Direction</span>
+      <span class="page-no">2</span>
+    </div>
+    <h2>Executive summary</h2>
+    <p class="lead">Higanna should remain one full-stack application while the product grows. The code will be separated into modules, but it does not need the cost and complexity of microservices yet.</p>
+
+    <div class="callout decision">
+      <strong>Agreed authentication:</strong> players provide only an email address and password. A safe automatic display name such as <strong>Player4821</strong> can be generated internally. Google and Facebook can be linked later to the same user account.
+    </div>
+
+    <div class="grid-2">
+      <div class="card blue">
+        <h3>Application</h3>
+        <p>Continue using the current Next.js frontend, Node.js custom server and Socket.IO realtime gateway behind Nginx and PM2.</p>
+      </div>
+      <div class="card cyan">
+        <h3>Permanent data</h3>
+        <p>Use MySQL for users, sessions, wallets, transactions, subscriptions, match records and final results.</p>
+      </div>
+      <div class="card gold">
+        <h3>Realtime data</h3>
+        <p>Use Redis for matchmaking queues, online presence and temporary active-game state. MySQL remains the source of truth.</p>
+      </div>
+      <div class="card green">
+        <h3>Security boundary</h3>
+        <p>The server owns identity, coin balances, legal moves, results and rewards. The browser only sends player intentions.</p>
+      </div>
+    </div>
+
+    <h2 style="margin-top:22px">Technology decisions</h2>
+    <table>
+      <thead><tr><th>Area</th><th>Recommended choice</th><th>Reason</th></tr></thead>
+      <tbody>
+        <tr><td>Architecture</td><td>Modular monolith</td><td>Simple deployment now, with clear module boundaries for future scaling.</td></tr>
+        <tr><td>Authentication</td><td>Better Auth</td><td>Email/password now; social identities, sessions, reset and verification later.</td></tr>
+        <tr><td>Database access</td><td>Prisma ORM</td><td>Typed MySQL queries, repeatable migrations and transaction support.</td></tr>
+        <tr><td>Realtime</td><td>Socket.IO</td><td>Already integrated and suitable for rooms, matchmaking and game commands.</td></tr>
+        <tr><td>Temporary state</td><td>Redis</td><td>Fast queue, presence, locks and multi-process coordination.</td></tr>
+        <tr><td>Hosting</td><td>Nginx + PM2</td><td>Preserves the current deployment model at <strong>/higanna</strong>.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout warning">
+      <strong>Production prerequisite:</strong> add a real domain and HTTPS before Google/Facebook login, payments or public account launch. The current raw HTTP IP is suitable only as a temporary deployment endpoint.
+    </div>
+  </section>
+
+  <section class="page">
+    <div class="section-head">
+      <span class="section-label">02 • System design</span>
+      <span class="page-no">3</span>
+    </div>
+    <h2>Target architecture</h2>
+
+    <svg viewBox="0 0 760 520" width="100%" role="img" aria-label="Higanna architecture diagram" style="margin:3px 0 15px">
+      <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#59709f" />
+        </marker>
+        <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+          <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#24334f" flood-opacity=".12" />
+        </filter>
+      </defs>
+
+      <rect x="270" y="10" width="220" height="52" rx="10" fill="#172f67" />
+      <text x="380" y="31" text-anchor="middle" fill="white" font-size="15" font-weight="700">Player Browser / PWA</text>
+      <text x="380" y="49" text-anchor="middle" fill="#cbdcff" font-size="11">authenticated session + game UI</text>
+
+      <line x1="380" y1="62" x2="380" y2="94" stroke="#59709f" stroke-width="2" marker-end="url(#arrow)" />
+      <rect x="267" y="97" width="226" height="49" rx="9" fill="#eaf0ff" stroke="#9cb2e8" />
+      <text x="380" y="118" text-anchor="middle" fill="#20325c" font-size="14" font-weight="700">Nginx + HTTPS</text>
+      <text x="380" y="135" text-anchor="middle" fill="#5b6477" font-size="11">/higanna reverse proxy</text>
+
+      <line x1="380" y1="146" x2="380" y2="177" stroke="#59709f" stroke-width="2" marker-end="url(#arrow)" />
+      <rect x="70" y="180" width="620" height="220" rx="14" fill="#f7f9fc" stroke="#c9d3e5" stroke-width="2" filter="url(#shadow)" />
+      <text x="95" y="207" fill="#20325c" font-size="15" font-weight="700">Higanna application • PM2</text>
+
+      <rect x="100" y="230" width="165" height="54" rx="8" fill="white" stroke="#9cb2e8" />
+      <text x="182" y="252" text-anchor="middle" fill="#20325c" font-size="13" font-weight="700">Next.js UI + API</text>
+      <text x="182" y="270" text-anchor="middle" fill="#5b6477" font-size="10.5">pages and HTTP endpoints</text>
+
+      <rect x="298" y="230" width="165" height="54" rx="8" fill="white" stroke="#73c9d3" />
+      <text x="380" y="252" text-anchor="middle" fill="#20325c" font-size="13" font-weight="700">Socket.IO gateway</text>
+      <text x="380" y="270" text-anchor="middle" fill="#5b6477" font-size="10.5">rooms and game commands</text>
+
+      <rect x="496" y="230" width="165" height="54" rx="8" fill="white" stroke="#9cb2e8" />
+      <text x="578" y="252" text-anchor="middle" fill="#20325c" font-size="13" font-weight="700">Worker jobs</text>
+      <text x="578" y="270" text-anchor="middle" fill="#5b6477" font-size="10.5">email and clean-up tasks</text>
+
+      <g font-size="11.5" font-weight="700" text-anchor="middle">
+        <rect x="100" y="317" width="93" height="48" rx="7" fill="#2457d6" /><text x="146" y="345" fill="white">Auth</text>
+        <rect x="210" y="317" width="93" height="48" rx="7" fill="#2457d6" /><text x="256" y="345" fill="white">Wallet</text>
+        <rect x="320" y="317" width="110" height="48" rx="7" fill="#16a5b6" /><text x="375" y="345" fill="white">Matchmaking</text>
+        <rect x="447" y="317" width="93" height="48" rx="7" fill="#16a5b6" /><text x="493" y="345" fill="white">Game</text>
+        <rect x="557" y="317" width="75" height="48" rx="7" fill="#f4b942" /><text x="594" y="345" fill="#3c310f">Bots</text>
+      </g>
+
+      <line x1="182" y1="284" x2="146" y2="315" stroke="#8192b3" marker-end="url(#arrow)" />
+      <line x1="182" y1="284" x2="256" y2="315" stroke="#8192b3" marker-end="url(#arrow)" />
+      <line x1="380" y1="284" x2="375" y2="315" stroke="#8192b3" marker-end="url(#arrow)" />
+      <line x1="380" y1="284" x2="493" y2="315" stroke="#8192b3" marker-end="url(#arrow)" />
+      <line x1="594" y1="317" x2="524" y2="284" stroke="#8192b3" marker-end="url(#arrow)" />
+
+      <line x1="240" y1="400" x2="240" y2="436" stroke="#59709f" stroke-width="2" marker-end="url(#arrow)" />
+      <line x1="520" y1="400" x2="520" y2="436" stroke="#59709f" stroke-width="2" marker-end="url(#arrow)" />
+
+      <rect x="105" y="439" width="270" height="65" rx="10" fill="#183a83" />
+      <text x="240" y="466" text-anchor="middle" fill="white" font-size="15" font-weight="700">MySQL</text>
+      <text x="240" y="485" text-anchor="middle" fill="#cbdcff" font-size="11">users • wallets • ledger • match results</text>
+
+      <rect x="385" y="439" width="270" height="65" rx="10" fill="#0d7d8c" />
+      <text x="520" y="466" text-anchor="middle" fill="white" font-size="15" font-weight="700">Redis</text>
+      <text x="520" y="485" text-anchor="middle" fill="#d5f4f7" font-size="11">queue • presence • active game state</text>
+    </svg>
+
+    <div class="grid-2">
+      <div class="card blue">
+        <h3>Authentication boundary</h3>
+        <p>Signup and sign-in use email/password. Secure session cookies identify HTTP and Socket.IO requests. Client-provided player IDs are not trusted.</p>
+      </div>
+      <div class="card cyan">
+        <h3>Game boundary</h3>
+        <p>The server validates turns, legal actions and final results. Bots call the same legal-action interface and receive only permitted game information.</p>
+      </div>
+    </div>
+
+    <div class="callout">
+      <strong>Quick Play interpretation:</strong> a player joins a global queue; compatible human players are selected first, then server-side bots fill empty seats after a configurable timeout. Existing private-room play remains available.
+    </div>
+  </section>
+
+  <section class="page">
+    <div class="section-head">
+      <span class="section-label">03 • Data &amp; core flows</span>
+      <span class="page-no">4</span>
+    </div>
+    <h2>Database model</h2>
+    <table>
+      <thead><tr><th>Module</th><th>Tables</th><th>Responsibility</th></tr></thead>
+      <tbody>
+        <tr><td>Identity</td><td><strong>users, accounts, sessions, verification</strong></td><td>Email/password accounts, future Google/Facebook identities, sessions and verification records.</td></tr>
+        <tr><td>Economy</td><td><strong>wallets, coin_ledger, coin_holds</strong></td><td>Available balance, immutable history and temporary match-entry reservations.</td></tr>
+        <tr><td>Games</td><td><strong>game_sessions, game_participants, game_results, game_snapshots</strong></td><td>Human/bot participation, completed results, statistics and crash recovery.</td></tr>
+        <tr><td>Matchmaking</td><td><strong>matchmaking_tickets</strong></td><td>Durable ticket status; active ordering and presence stay in Redis.</td></tr>
+        <tr><td>Revenue</td><td><strong>ad_reward_claims, subscriptions, payment_events</strong></td><td>Verified rewards, provider status and duplicate-event protection.</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Authentication flow</h2>
+    <div class="flow">
+      <div class="flow-row">
+        <div class="flow-box">Email + password</div><div class="arrow">›</div>
+        <div class="flow-box">Validate + create user</div><div class="arrow">›</div>
+        <div class="flow-box">Secure session cookie</div><div class="arrow">›</div>
+        <div class="flow-box">HTTP and Socket identity</div>
+      </div>
+    </div>
+    <ul class="checklist">
+      <li>Passwords are handled by the authentication library and never stored as plain text.</li>
+      <li>Duplicate normalized email addresses are rejected.</li>
+      <li>Signup/login endpoints receive validation and rate limiting.</li>
+      <li>Password reset and email verification are added before public production launch.</li>
+    </ul>
+
+    <h2>Coin and matchmaking flow</h2>
+    <div class="flow">
+      <div class="flow-row">
+        <div class="flow-box">Join Quick Play</div><div class="arrow">›</div>
+        <div class="flow-box">Reserve entry coins</div><div class="arrow">›</div>
+        <div class="flow-box">Find humans</div><div class="arrow">›</div>
+        <div class="flow-box">Fill with bots</div><div class="arrow">›</div>
+        <div class="flow-box">Start match</div>
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="card green">
+        <h3>If the match starts</h3>
+        <p>Capture the reserved entry coins. At completion, the server stores the result and adds rewards through the ledger.</p>
+      </div>
+      <div class="card gold">
+        <h3>If the match fails</h3>
+        <p>Release the reservation. A retry-safe idempotency key prevents duplicate charges, refunds or rewards.</p>
+      </div>
+    </div>
+
+    <div class="callout warning">
+      <strong>Economy rule:</strong> the frontend never sends a balance or reward amount to be trusted. All wallet changes use a MySQL transaction and append a permanent ledger entry. Initially, coins should be non-transferable and non-withdrawable.
+    </div>
+  </section>
+
+  <section class="page">
+    <div class="section-head">
+      <span class="section-label">04 • Delivery roadmap</span>
+      <span class="page-no">5</span>
+    </div>
+    <h2>Phased implementation</h2>
+
+    <div class="phase"><div class="phase-id">Phase 1</div><div class="phase-body"><h3>Database foundation</h3><p>Configure MySQL, Prisma, environment variables, migrations and a reusable database connection. Confirm the existing game still builds and runs.</p></div></div>
+    <div class="phase"><div class="phase-id">Phase 2</div><div class="phase-body"><h3>Email/password authentication</h3><p>Add signup, sign-in, sign-out, sessions, validation, generated display names and protected routes. Then add verification and password reset.</p></div></div>
+    <div class="phase"><div class="phase-id">Phase 3</div><div class="phase-body"><h3>Socket.IO authentication</h3><p>Authenticate the socket handshake from the server session, remove client-controlled identity and support safe reconnection.</p></div></div>
+    <div class="phase"><div class="phase-id">Phase 4</div><div class="phase-body"><h3>Wallet and coin ledger</h3><p>Add starting balance, immutable transactions, coin reservations, entry deductions, refunds and game rewards.</p></div></div>
+    <div class="phase"><div class="phase-id">Phase 5</div><div class="phase-body"><h3>Global Quick Play</h3><p>Add Redis-backed matchmaking while preserving existing private rooms. Match humans first and fill missing seats after a timeout.</p></div></div>
+
+    <div class="callout">
+      <strong>Dependency rule:</strong> each phase begins only after the previous phase meets its acceptance checks. This prevents coins and matchmaking from being built on an unverified identity layer.
+    </div>
+  </section>
+
+  <section class="page">
+    <div class="section-head">
+      <span class="section-label">04 • Delivery roadmap continued</span>
+      <span class="page-no">6</span>
+    </div>
+    <h2>Phased implementation</h2>
+
+    <div class="phase"><div class="phase-id">Phase 6</div><div class="phase-body"><h3>Server-side bots</h3><p>Implement random legal-action and basic strategy bots through the existing engine, with difficulty and disconnect replacement.</p></div></div>
+    <div class="phase"><div class="phase-id">Phase 7</div><div class="phase-body"><h3>Ads and subscriptions</h3><p>Add provider-independent monetization, verified callbacks/webhooks, limits and duplicate-claim protection only after the wallet is stable.</p></div></div>
+    <div class="phase"><div class="phase-id">Phase 8</div><div class="phase-body"><h3>Google and Facebook login</h3><p>Link social identities to existing user accounts after a domain and HTTPS are active.</p></div></div>
+    <div class="phase"><div class="phase-id">Phase 9</div><div class="phase-body"><h3>Production hardening</h3><p>Add backups, monitoring, rate limits, security headers, staging deployment, recovery testing and documented privacy/refund rules.</p></div></div>
+
+    <div class="callout decision">
+      <strong>First milestone:</strong> complete only MySQL + Prisma + Better Auth + signup/sign-in. Coins and matchmaking begin after authenticated HTTP and Socket.IO identity passes testing.
+    </div>
+  </section>
+
+  <section class="page">
+    <div class="section-head">
+      <span class="section-label">05 • Acceptance &amp; decisions</span>
+      <span class="page-no">7</span>
+    </div>
+    <h2>Milestone acceptance criteria</h2>
+    <div class="grid-2">
+      <div class="card blue">
+        <h3>Account milestone</h3>
+        <ul class="checklist">
+          <li>A player registers with email/password only.</li>
+          <li>Duplicate emails are rejected.</li>
+          <li>The session survives a browser refresh.</li>
+          <li>Sign-out terminates the session.</li>
+          <li>Unauthenticated users cannot start games.</li>
+        </ul>
+      </div>
+      <div class="card cyan">
+        <h3>Realtime milestone</h3>
+        <ul class="checklist">
+          <li>Every socket belongs to an authenticated user.</li>
+          <li>Client-provided user IDs are ignored.</li>
+          <li>Reconnect returns the correct player to the game.</li>
+          <li>Private-room behaviour remains compatible.</li>
+        </ul>
+      </div>
+      <div class="card green">
+        <h3>Wallet milestone</h3>
+        <ul class="checklist">
+          <li>Every balance change has a ledger record.</li>
+          <li>Concurrent requests cannot overspend.</li>
+          <li>Retries cannot duplicate a charge or reward.</li>
+          <li>Failed matchmaking releases held coins.</li>
+        </ul>
+      </div>
+      <div class="card gold">
+        <h3>Matchmaking milestone</h3>
+        <ul class="checklist">
+          <li>Real players are selected before bots.</li>
+          <li>Bot fill begins only after the timeout.</li>
+          <li>All actions are validated server-side.</li>
+          <li>Results and participants persist in MySQL.</li>
+        </ul>
+      </div>
+    </div>
+
+    <h2 style="margin-top:22px">Business decisions still required</h2>
+    <table>
+      <thead><tr><th>Decision</th><th>Recommended starting value</th></tr></thead>
+      <tbody>
+        <tr><td>Quick Play table size</td><td>Four total seats; humans first, then bots.</td></tr>
+        <tr><td>Bot-fill timeout</td><td>15 seconds for the first release.</td></tr>
+        <tr><td>Match entry and prizes</td><td>Configure after testing game duration and retention; keep values in database settings.</td></tr>
+        <tr><td>Subscription benefit</td><td>Monthly coin grant plus no advertisements; avoid unlimited play until economy data is available.</td></tr>
+        <tr><td>Development database</td><td>Use local MySQL or a separate development database—never the live production database.</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Safe release path</h2>
+    <div class="mono">Local development → automated tests → production build
+Database backup → migration plan/review → migration deploy
+Upload release → build with /higanna base path → PM2 restart
+Health check → authentication check → Socket.IO check → rollback if required</div>
+
+    <p class="small" style="margin-top:15px">This document defines the target technical direction. Exact coin values, prize distribution, table size, bot timeout and subscription benefits remain product decisions and should be confirmed before their corresponding phase begins.</p>
+  </section>
+</body>
+</html>
