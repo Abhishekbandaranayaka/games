@@ -55,7 +55,7 @@ npm run db:generate
 npm run db:migrate:deploy
 ```
 
-Then build and restart the application using the existing `/higanna` deployment
+Then build and restart the application using the existing `/play` deployment
 environment. Keep the production `DATABASE_URL` only in the server-side `.env`
 or PM2 environment; never upload it to source control or expose it through a
 `NEXT_PUBLIC_` variable.

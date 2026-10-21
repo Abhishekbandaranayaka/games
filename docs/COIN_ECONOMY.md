@@ -49,7 +49,7 @@ by the application after the change.
 
 ## Authenticated API
 
-`GET /higanna/api/wallet` returns available, reserved and total balances plus
+`GET /play/api/wallet` returns available, reserved and total balances plus
 the latest 20 ledger entries. All BigInt coin values are serialized as decimal
 strings.
 

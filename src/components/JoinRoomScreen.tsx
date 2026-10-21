@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { AppBackground } from "@/components/AppBackground";
 import { BrandMark } from "@/components/BrandMark";
+import { HIGANNA_PATH } from "@/lib/routes";
 
 export function JoinRoomScreen({
   code,
@@ -39,7 +40,7 @@ export function JoinRoomScreen({
         >
           <button
             type="button"
-            onClick={() => router.push("/")}
+            onClick={() => router.push(HIGANNA_PATH)}
             className="inline-flex min-h-11 items-center gap-2 rounded-full bg-white/6 px-3.5 text-sm font-medium text-amber-100/80 hover:bg-white/10"
           >
             <svg

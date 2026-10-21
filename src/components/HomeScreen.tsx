@@ -4,8 +4,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { AppBackground } from "@/components/AppBackground";
 import { BrandMark } from "@/components/BrandMark";
-import { authClient } from "@/lib/auth-client";
-import { disconnectSocket } from "@/lib/socket";
+import { HUB_PATH, higannaRoomPath } from "@/lib/routes";
 
 export function HomeScreen({
   player,
@@ -17,7 +16,6 @@ export function HomeScreen({
   const router = useRouter();
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
-  const [signingOut, setSigningOut] = useState(false);
   const [howToOpen, setHowToOpen] = useState(false);
   const [howToVisible, setHowToVisible] = useState(false);
 
@@ -42,7 +40,7 @@ export function HomeScreen({
 
   function createRoom() {
     setError("");
-    router.push("/room/new");
+    router.push(higannaRoomPath("new"));
   }
 
   function joinRoom() {
@@ -51,19 +49,7 @@ export function HomeScreen({
       return;
     }
     setError("");
-    router.push(`/room/${code.trim().toUpperCase()}`);
-  }
-
-  async function signOut() {
-    if (signingOut) return;
-    setSigningOut(true);
-    try {
-      await authClient.signOut();
-      disconnectSocket();
-      router.refresh();
-    } finally {
-      setSigningOut(false);
-    }
+    router.push(higannaRoomPath(code.trim().toUpperCase()));
   }
 
   function onSubmit(e: FormEvent) {
@@ -93,11 +79,10 @@ export function HomeScreen({
               </span>
               <button
                 type="button"
-                onClick={signOut}
-                disabled={signingOut}
-                className="min-h-9 shrink-0 rounded-xl border border-amber-300/20 px-3 text-xs font-semibold text-amber-100/70 hover:bg-white/5 disabled:opacity-50"
+                onClick={() => router.push(HUB_PATH)}
+                className="min-h-9 shrink-0 rounded-xl border border-amber-300/20 px-3 text-xs font-semibold text-amber-100/70 hover:bg-white/5"
               >
-                {signingOut ? "Signing out..." : "Sign out"}
+                ← Games
               </button>
             </div>
           </div>

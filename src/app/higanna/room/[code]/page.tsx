@@ -1,5 +1,6 @@
 import { AuthScreen } from "@/components/AuthScreen";
 import { GameRoom } from "@/components/GameRoom";
+import { higannaRoomPath } from "@/lib/routes";
 import { economyConfig } from "@/server/economy-config";
 import { getCurrentSession } from "@/server/session";
 import { getWallet } from "@/server/wallet";
@@ -19,7 +20,7 @@ export default async function RoomPage({
   const session = await getCurrentSession();
 
   if (!session) {
-    const callbackUrl = `/room/${encodeURIComponent(code)}${inviteJoin ? "?join=1" : ""}`;
+    const callbackUrl = `${higannaRoomPath(encodeURIComponent(code))}${inviteJoin ? "?join=1" : ""}`;
     return <AuthScreen callbackUrl={callbackUrl} />;
   }
   const wallet = await getWallet(session.user.id);

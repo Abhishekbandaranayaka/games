@@ -3,8 +3,10 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { AppBackground } from "@/components/AppBackground";
-import { BrandMark } from "@/components/BrandMark";
+import { HubLogo } from "@/components/HubLogo";
 import { authClient } from "@/lib/auth-client";
+import { HUB_NAME } from "@/lib/brand";
+import { isHigannaPath } from "@/lib/routes";
 import { USERNAME_MAX_LENGTH, usernameError } from "@/lib/username";
 
 type AuthMode = "sign-in" | "sign-up";
@@ -88,16 +90,14 @@ export function AuthScreen({ callbackUrl = "/" }: { callbackUrl?: string }) {
       <AppBackground />
       <main className="relative z-10 mx-auto flex min-h-dvh w-full max-w-[420px] flex-col justify-center px-4 py-[max(1.5rem,env(safe-area-inset-top))]">
         <div className="text-center">
-          <p className="text-[10px] font-medium uppercase tracking-[0.38em] text-amber-400/75">
-            Player account
-          </p>
-          <h1 className="mt-3 flex justify-center">
-            <BrandMark
-              size="hero"
-              priority
-              className="drop-shadow-[0_4px_20px_rgba(212,175,55,0.25)]"
-            />
+          <h1 className="flex justify-center">
+            <HubLogo size="hero" />
           </h1>
+          <p className="mt-4 text-xs text-amber-100/55">
+            {isHigannaPath(safeDestination(callbackUrl))
+              ? "Sign in to continue to හිඟන්නා"
+              : `One ${HUB_NAME} account for every game`}
+          </p>
         </div>
 
         <div className="mt-8 rounded-[24px] border border-amber-300/20 bg-black/45 p-5 shadow-[0_24px_70px_rgba(0,0,0,0.5)] backdrop-blur-xl">
@@ -209,7 +209,7 @@ export function AuthScreen({ callbackUrl = "/" }: { callbackUrl?: string }) {
           <p className="mt-4 text-center text-xs leading-relaxed text-amber-100/45">
             {mode === "sign-up"
               ? "3 to 20 letters, numbers, or underscores. This name is shown to other players."
-              : "Sign in to create or join a game room."}
+              : "Your coins and account work in every game."}
           </p>
         </div>
       </main>

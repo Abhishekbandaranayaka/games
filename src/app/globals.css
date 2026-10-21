@@ -843,6 +843,89 @@ select {
   }
 }
 
+/* Sellam hub wordmark */
+.hub-logo {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+  filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.45));
+}
+
+.hub-logo__suits {
+  display: flex;
+  gap: 0.55em;
+  font-size: 1.35rem;
+  color: #fde68a;
+  opacity: 0.85;
+}
+
+.hub-logo__suit--red {
+  color: #f87171;
+}
+
+.hub-logo__si {
+  margin-top: 0.35em;
+  font-family: var(--font-fm-abhaya), var(--font-sinhala), serif;
+  font-size: 3.4rem;
+  font-weight: 800;
+  background: linear-gradient(to bottom, #fef3c7, #fbbf24 55%, #b45309);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.hub-logo__en {
+  margin-top: 0.3em;
+  font-family: var(--font-serif), serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.42em;
+  padding-left: 0.42em;
+  text-transform: uppercase;
+  color: #fde68a;
+}
+
+.hub-logo__tag {
+  margin-top: 0.7em;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.36em;
+  padding-left: 0.36em;
+  text-transform: uppercase;
+  color: rgba(253, 230, 138, 0.55);
+}
+
+.hub-logo--splash .hub-logo__suits {
+  font-size: 1.6rem;
+}
+
+.hub-logo--splash .hub-logo__si {
+  font-size: 4.2rem;
+}
+
+.hub-logo--splash .hub-logo__en {
+  font-size: 1.35rem;
+}
+
+.hub-logo--header {
+  flex-direction: row;
+  align-items: baseline;
+  gap: 0.5rem;
+  filter: none;
+}
+
+.hub-logo--header .hub-logo__si {
+  margin-top: 0;
+  font-size: 1.6rem;
+}
+
+.hub-logo--header .hub-logo__en {
+  margin-top: 0;
+  font-size: 0.7rem;
+  letter-spacing: 0.32em;
+}
+
 @keyframes tribute-card-glow {
   0%,
   100% {

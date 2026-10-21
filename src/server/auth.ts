@@ -82,7 +82,7 @@ const authDatabase = db.$extends({
 });
 
 export const auth = betterAuth({
-  appName: "Higanna",
+  appName: "Sellam",
   baseURL: configuredAuthUrl,
   basePath: authRoutePath,
   secret: process.env.BETTER_AUTH_SECRET,

@@ -17,6 +17,7 @@ import {
   type CardFlight,
 } from "@/components/CardFlight";
 import { MIN_PLAYERS, sortHand, TURN_DURATION_MS, beggarTributeCardIds, isValidBeggarTribute } from "@/lib/engine";
+import { HIGANNA_PATH, higannaRoomPath } from "@/lib/routes";
 import { getShareLink, copyText } from "@/lib/shareLink";
 import { disconnectSocket, getSocket } from "@/lib/socket";
 import {
@@ -221,7 +222,7 @@ export function GameRoom({
       sessionStorage.removeItem(`higanna-joined-${code}`);
     }
     joined.current = false;
-    router.push("/");
+    router.push(HIGANNA_PATH);
   }
 
   // Trap browser / gesture back while seated in a lobby or match.
@@ -265,7 +266,7 @@ export function GameRoom({
         setNeedsJoinGate(true);
         return;
       }
-      router.replace("/");
+      router.replace(HIGANNA_PATH);
       return;
     }
 
@@ -287,13 +288,13 @@ export function GameRoom({
       setView(next);
       if (roomCode === "new" && next.code) {
         sessionStorage.setItem(`higanna-joined-${next.code}`, "1");
-        router.replace(`/room/${next.code}`);
+        router.replace(higannaRoomPath(next.code));
         return;
       }
       // After invite join, drop ?join=1 so refresh stays in the lobby.
       if (inviteJoin && next.code) {
         sessionStorage.setItem(`higanna-joined-${next.code}`, "1");
-        router.replace(`/room/${next.code}`);
+        router.replace(higannaRoomPath(next.code));
       }
     }
     function onToast(msg: string) {
@@ -347,7 +348,7 @@ export function GameRoom({
       joined.current = false;
       setView(null);
       setToast(typeof msg === "string" && msg ? msg : "The host removed you from the room.");
-      router.replace("/");
+      router.replace(HIGANNA_PATH);
     }
     socket.on("kicked", onKicked);
 
@@ -792,7 +793,7 @@ export function GameRoom({
             </button>
             <button
               type="button"
-              onClick={() => router.push("/")}
+              onClick={() => router.push(HIGANNA_PATH)}
               className="min-h-12 w-full rounded-full border border-amber-200/25 bg-white/5 text-base font-medium text-amber-100"
             >
               Go home

@@ -1,9 +1,10 @@
 import { withBasePath } from "./basePath";
+import { higannaRoomPath } from "./routes";
 
 /** Build a public invite link, using the host machine LAN IP for localhost development. */
 export async function getShareLink(roomCode: string): Promise<string> {
   // `join=1` opens the name-only invite page for guests (host lobby skips that).
-  const path = withBasePath(`/room/${roomCode}?join=1`);
+  const path = withBasePath(`${higannaRoomPath(roomCode)}?join=1`);
 
   // A deployed browser already has the correct public scheme, host and proxy path.
   const { hostname, origin } = window.location;

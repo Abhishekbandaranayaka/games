@@ -1,9 +1,13 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useState, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
+import { HubLogo } from "@/components/HubLogo";
 import { SPLASH_LOGO_SRC } from "@/lib/brand";
 import { BASE_PATH } from "@/lib/basePath";
+import { HIGANNA_PATH, isHigannaPath } from "@/lib/routes";
+
+type SplashBrand = "hub" | "higanna";
 
 const SPLASH_MS = 2000;
 const FADE_MS = 400;
@@ -20,13 +24,22 @@ export function clearGameStarted(code: string) {
   sessionStorage.removeItem(gameStartedSessionKey(code));
 }
 
-function roomCodeFromPath(pathname: string | null): string | null {
-  if (!pathname) return null;
-  const appPath = BASE_PATH && pathname.startsWith(`${BASE_PATH}/`)
+function appPathOf(pathname: string | null): string {
+  if (!pathname) return "/";
+  return BASE_PATH && pathname.startsWith(`${BASE_PATH}/`)
     ? pathname.slice(BASE_PATH.length)
     : pathname;
-  if (!appPath.startsWith("/room/")) return null;
-  const code = appPath.slice("/room/".length).split("/")[0]?.trim();
+}
+
+function splashBrandFor(pathname: string | null): SplashBrand {
+  return isHigannaPath(appPathOf(pathname)) ? "higanna" : "hub";
+}
+
+function roomCodeFromPath(pathname: string | null): string | null {
+  const roomPrefix = `${HIGANNA_PATH}/room/`;
+  const appPath = appPathOf(pathname);
+  if (!appPath.startsWith(roomPrefix)) return null;
+  const code = appPath.slice(roomPrefix.length).split("/")[0]?.trim();
   if (!code || code === "new") return null;
   return code.toUpperCase();
 }
@@ -40,13 +53,20 @@ function shouldSkipSplash(pathname: string | null): boolean {
 }
 
 /**
- * Splash on first load and on refresh (home or room lobby).
+ * Splash on first load and on refresh, branded for the hub or the current game.
+ * Replays once when entering a game from the hub.
  * App content mounts underneath immediately so the handoff after splash is seamless.
  */
 export function AppBoot({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const brand = splashBrandFor(pathname);
+  const [splash, setSplash] = useState<{ brand: SplashBrand; run: number }>(() => ({
+    brand,
+    run: 0,
+  }));
   const [phase, setPhase] = useState<"splash" | "leaving" | "done">("splash");
   const [progressOn, setProgressOn] = useState(false);
+  const previousBrand = useRef(brand);
 
   useLayoutEffect(() => {
     if (shouldSkipSplash(pathname)) {
@@ -55,8 +75,16 @@ export function AppBoot({ children }: { children: ReactNode }) {
   }, [pathname]);
 
   useEffect(() => {
-    if (shouldSkipSplash(pathname)) return;
-    if (phase !== "splash") return;
+    const previous = previousBrand.current;
+    previousBrand.current = brand;
+    if (previous === brand || brand === "hub" || shouldSkipSplash(pathname)) return;
+    setSplash((current) => ({ brand, run: current.run + 1 }));
+    setProgressOn(false);
+    setPhase("splash");
+  }, [brand, pathname]);
+
+  useEffect(() => {
+    if (splash.run === 0 && shouldSkipSplash(pathname)) return;
 
     const start = window.requestAnimationFrame(() => {
       window.requestAnimationFrame(() => setProgressOn(true));
@@ -68,9 +96,9 @@ export function AppBoot({ children }: { children: ReactNode }) {
       window.clearTimeout(leaveTimer);
       window.clearTimeout(doneTimer);
     };
-    // Initial boot only — client nav should not re-trigger a 2s splash.
+    // Runs on boot and on each game-entry replay, not on every client navigation.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [splash.run]);
 
   return (
     <>
@@ -98,16 +126,20 @@ export function AppBoot({ children }: { children: ReactNode }) {
             <div className="app-bg__vignette" />
           </div>
           <div className="splash-boot__inner">
-            <img
-              src={SPLASH_LOGO_SRC}
-              alt=""
-              width={280}
-              height={280}
-              className="splash-boot__logo"
-              decoding="async"
-              fetchPriority="high"
-              draggable={false}
-            />
+            {splash.brand === "higanna" ? (
+              <img
+                src={SPLASH_LOGO_SRC}
+                alt=""
+                width={280}
+                height={280}
+                className="splash-boot__logo"
+                decoding="async"
+                fetchPriority="high"
+                draggable={false}
+              />
+            ) : (
+              <HubLogo size="splash" />
+            )}
             <div className="splash-boot__progress-wrap">
               <div
                 className="splash-boot__progress-track"

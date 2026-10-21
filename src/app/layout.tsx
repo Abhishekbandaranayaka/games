@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Abhaya_Libre, Cinzel, Noto_Serif_Sinhala, Poppins } from "next/font/google";
 import { AppBoot } from "@/components/SplashScreen";
-import { MINI_LOGO_SRC, SPLASH_LOGO_SRC } from "@/lib/brand";
+import { HUB_NAME } from "@/lib/brand";
 import "./globals.css";
 
 const sinhala = Noto_Serif_Sinhala({
@@ -38,11 +38,14 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "හිඟන්නා",
-  description: "Realtime multiplayer card game — King, Queen, Beggar",
+  title: {
+    default: HUB_NAME,
+    template: `%s · ${HUB_NAME}`,
+  },
+  description: "Sellam game hub — one account and one coin wallet for every game",
   appleWebApp: {
     capable: true,
-    title: "හිඟන්නා",
+    title: HUB_NAME,
     statusBarStyle: "black-translucent",
   },
   formatDetection: { telephone: false },
@@ -51,10 +54,6 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${poppins.variable} ${sinhala.variable} ${fmAbhaya.variable} ${cinzel.variable} h-full antialiased`} suppressHydrationWarning>
-      <head>
-        <link rel="preload" href={SPLASH_LOGO_SRC} as="image" type="image/webp" />
-        <link rel="preload" href={MINI_LOGO_SRC} as="image" type="image/webp" />
-      </head>
       <body className="min-h-full bg-[#12070a]" suppressHydrationWarning>
         <AppBoot>{children}</AppBoot>
       </body>

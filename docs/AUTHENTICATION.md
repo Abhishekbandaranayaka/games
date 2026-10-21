@@ -9,7 +9,7 @@ public player name. Password credentials use Better Auth's password hashing flow
 ```env
 DATABASE_URL="mysql://higanna_app:password@127.0.0.1:3306/higanna"
 BETTER_AUTH_SECRET="long-random-secret"
-BETTER_AUTH_URL="http://45.79.125.85/higanna/api/auth"
+BETTER_AUTH_URL="http://45.79.125.85/play/api/auth"
 ```
 
 Generate the authentication secret on the target server:
@@ -54,7 +54,7 @@ environment. Use a domain and HTTPS before accepting real public accounts.
 
 After installing, building, migrating, and restarting the app:
 
-1. `GET /higanna/api/auth/get-session` returns `null` before login.
+1. `GET /play/api/auth/get-session` returns `null` before login.
 2. Signup creates one `user`, one credential `account`, and one `session` row.
 3. The username chosen at signup appears on the home screen. A second signup
    with that same username is rejected.
